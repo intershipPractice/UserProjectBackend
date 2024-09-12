@@ -1,2 +1,5 @@
-fastapi==0.110.0
+fastapi[standard]
+uvicorn
 sqlmodel
+pymysql
+cryptography

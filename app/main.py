@@ -1,7 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app import models
+from contextlib import asynccontextmanager
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Initialize database
+    models.SQLModel.metadata.create_all(models.engine)
+    yield
+    # Cleanup code (if any) goes here
+
+app = FastAPI(lifespan=lifespan)
 
 origins = [
     "http://localhost",
