@@ -5,10 +5,8 @@ from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize database
     models.SQLModel.metadata.create_all(models.engine)
     yield
-    # Cleanup code (if any) goes here
 
 app = FastAPI(lifespan=lifespan)
 
