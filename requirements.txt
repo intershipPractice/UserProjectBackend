@@ -3,3 +3,9 @@ uvicorn
 sqlmodel
 pymysql
 cryptography
+pyjwt
+passlib[bcrypt]
+fastapi-another-jwt-auth
+logging
+colorlog
+python-multipart

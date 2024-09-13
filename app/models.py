@@ -1,7 +1,7 @@
-from sqlmodel import Field, SQLModel, create_engine, Relationship
-import os
+from sqlmodel import Field, SQLModel, create_engine, Relationship, Session
 from typing import Optional, List
 from datetime import datetime
+from app.configs import DATABASE_URL
 
 class User(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -22,10 +22,17 @@ class Blog(SQLModel, table=True):
     userId: Optional[int] = Field(default=None, foreign_key="user.id")
     author: Optional[User] = Relationship(back_populates="blogs")
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-
-print(f"Connecting to: {DATABASE_URL}")
-
 engine = create_engine(DATABASE_URL, echo=True)
 
 SQLModel.metadata.create_all(engine)
+
+def get_session():
+    with Session(engine) as session:
+        yield session
+        
+def get_db():
+    db = Session(engine)
+    try:
+        yield db
+    finally:
+        db.close()
