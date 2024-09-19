@@ -23,7 +23,6 @@ class UserBase(BaseModel):
 
 class UpdateUserBase(BaseModel):
     nickname: str
-    profileUrl: str = ""
 
 class LoginData(BaseModel):
     email: str

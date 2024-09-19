@@ -1,9 +1,10 @@
-from fastapi import FastAPI, APIRouter, Depends, Request
+from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from app import models
 from contextlib import asynccontextmanager
 from app.user import routes as user_routes
 from fastapi.security import OAuth2PasswordBearer
+from app.bucket import routes as  s3_routes
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -16,6 +17,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/users/token")
 app = FastAPI(lifespan=lifespan)
 router = APIRouter(prefix="/api/v1")
 app.include_router(user_routes.router)
+app.include_router(s3_routes.router)
 
 # CORS 설정
 origins = [
