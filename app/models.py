@@ -9,6 +9,8 @@ class User(SQLModel, table=True):
     updatedAt: datetime = Field(default_factory=datetime.now)
     isDeleted: bool = Field(default=False)
     email: str
+    nickname: str
+    profileUrl: Optional[str] = None
     password: str
     blogs: List["Blog"] = Relationship(back_populates="author")
 

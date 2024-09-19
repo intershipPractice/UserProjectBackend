@@ -3,10 +3,11 @@ from fastapi_another_jwt_auth import AuthJWT
 import jwt
 from fastapi import HTTPException, status
 from passlib.context import CryptContext
-from app.user.schemas import UserBase
+from app.user.schemas import UserBase, UpdateUserBase
 from app.models import User
-from app.configs import JWT_ACCESS_EXPIRE_MINUTES, JWT_SECRET_KET
+from app.configs import JWT_ACCESS_EXPIRE_MINUTES, JWT_SECRET_KEY
 from app.logger import logger
+import time
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -39,30 +40,27 @@ def authenticate_user(db, email: str, password: str):
     """
     user = get_user(db, email)
     if not user:
-        return False
+        raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="비밀번호나 아이디가 틀렸습니다.",
+        headers={"WWW-Authenticate": "Bearer"},
+        )
     if not verify_password(password, user.password):
         return False
     return user
 
-def authenticate_access_token(access_token: str, Authorize: AuthJWT) -> str:
+def authenticate_access_token(Authorize: AuthJWT) -> str:
     """
     엑세스 토큰 인증 및 유저 이메일 반환
     """
-    try:
-        Authorize.jwt_required("Bearer", token=access_token)
-        email = Authorize.get_jwt_subject()
-        if email is None:
-            decoded_token = decode_jwt(access_token)
-            email = decoded_token.get("sub") if decoded_token else None
-        logger.info(f"유저 이메일: {email} 엑세스 토큰 확인 완료")
-        return email
-    except Exception as e:
-        logger.error(f"Failed to extract email from token: {e}")
-        raise ValueError("Invalid access token") from e
+    Authorize.jwt_required()
+    email = Authorize.get_jwt_subject()
+    logger.info(f"유저 이메일: {email} 엑세스 토큰 확인 완료")
+    return email
 
 def decode_jwt(token: str):
     try:
-        decoded_token = jwt.decode(token, JWT_SECRET_KET, algorithms=["HS256"])
+        decoded_token = jwt.decode(token, JWT_SECRET_KEY, algorithms=["HS256"])
         return decoded_token if decoded_token["exp"] >= time.time() else None
     except Exception as e:
         logger.error(f"Token decoding error: {e}")
@@ -120,3 +118,42 @@ def create_user(db, user: UserBase):
         db.rollback()
         return e
     return True
+
+def update_user_profile(db, email, profile_data: UpdateUserBase) -> bool:
+    user = get_user(db, email)
+    if not user:
+        return False
+    try:
+        user.nickname = profile_data.nickname
+        user.profileUrl = profile_data.profileUrl
+        db.commit()
+        return True     
+    except Exception as e:
+        db.rollback()
+        print(e)
+        return False
+    
+def check_email_duplicate(db, email: str) -> bool:
+    return db.query(User).filter(User.email == email).first() is not None
+
+def check_nickname_duplicate(db, nickname: str) -> bool:
+    return db.query(User).filter(User.nickname == nickname).first() is not None
+
+
+def delete_user_from_db(db, email: str):
+    """
+    사용자를 논리적으로 삭제 (isDeleted 필드를 True로 설정)
+    """
+    user = get_user(db, email)
+    if not user:
+        raise HTTPException(status_code=400, detail="User not found.")
+
+    try:
+        user.isDeleted = True
+        db.commit()
+        logger.info(f"User with email {email} has been deleted.")
+        return True
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error while deleting user {email}: {e}")
+        raise HTTPException(status_code=500, detail="유저 삭제 실패")
