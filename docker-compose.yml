@@ -1,23 +1,23 @@
 services:
-  # backend:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "8000:8000"
-  #   env_file:
-  #     - .env
-  #   environment:
-  #     - SQLALCHEMY_DATABASE_URL=${DATABASE_URL}
-  #     - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-  #     - JWT_ALGORITHM=${JWT_ALGORITHM}
-  #     - JWT_ACCESS_TOKEN_EXPIRE_MINUTES=${JWT_ACCESS_TOKEN_EXPIRE_MINUTES}
-  #     - JWT_REFRESH_TOKEN_EXPIRE_DAYS=${JWT_REFRESH_TOKEN_EXPIRE_DAYS}
-  #   depends_on:
-  #     - mysql
-  #   restart: always
-  #   networks:
-  #     - app-network
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - SQLALCHEMY_DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_ALGORITHM=${JWT_ALGORITHM}
+      - JWT_ACCESS_TOKEN_EXPIRE_MINUTES=${JWT_ACCESS_TOKEN_EXPIRE_MINUTES}
+      - JWT_REFRESH_TOKEN_EXPIRE_DAYS=${JWT_REFRESH_TOKEN_EXPIRE_DAYS}
+    depends_on:
+      - mysql
+    restart: always
+    networks:
+      - app-network
 
   mysql:
     image: mysql:latest

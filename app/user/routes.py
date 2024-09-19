@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from .crud import get_user, create_user, create_tokens_in_body, authenticate_refresh_token, authenticate_user, authenticate_access_token, update_user_profile, check_email_duplicate, check_nickname_duplicate, delete_user_from_db
-from .schemas import Token, UserBase, UpdateUserBase, LoginData
+from .schemas import Token, UserBase, UpdateUserBase, LoginData, GetUserBase
 from .auth import AuthJWT
 from app.logger import logger
 from app.models import get_db
@@ -68,8 +68,9 @@ async def get_profile(
     if not user:
         raise HTTPException(status_code=400, detail="User not found.")
     
-    user_profile = UpdateUserBase(
+    user_profile = GetUserBase(
         nickname=user.nickname,
+        email=user.email,
         profileUrl=user.profileUrl or ""
     )
     return JSONResponse(content=user_profile.dict(), status_code=200)

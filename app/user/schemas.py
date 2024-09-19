@@ -27,3 +27,7 @@ class UpdateUserBase(BaseModel):
 class LoginData(BaseModel):
     email: str
     password: str
+
+class GetUserBase(BaseModel):
+    nickname: str
+    email: str
