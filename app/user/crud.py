@@ -119,13 +119,16 @@ def create_user(db, user: UserBase):
         return e
     return True
 
-def update_user_profile(db, email, profile_data: UpdateUserBase) -> bool:
+def update_user_profile(db, email, profile_data: UpdateUserBase, profile_url: str = None) -> bool:
     user = get_user(db, email)
     if not user:
         return False
     try:
         user.nickname = profile_data.nickname
-        user.profileUrl = profile_data.profileUrl
+        
+        if profile_url:
+            user.profileUrl = profile_url
+        
         db.commit()
         return True     
     except Exception as e:

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Form
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
@@ -7,6 +7,8 @@ from .schemas import Token, UserBase, UpdateUserBase, LoginData
 from .auth import AuthJWT
 from app.logger import logger
 from app.models import get_db
+from app.bucket.s3_client import client_s3 
+from app.bucket.crud import upload_file_to_s3
 
 router = APIRouter(
     prefix="/api/v1/users",
@@ -61,9 +63,6 @@ async def get_profile(
     Authorize: AuthJWT = Depends(),
     db: Session = Depends(get_db)
 ):
-    """    
-    사용자 프로필 조회
-    """
     email = authenticate_access_token(Authorize=Authorize)
     user = get_user(db, email)
     if not user:
@@ -77,12 +76,20 @@ async def get_profile(
 
 @router.patch("/profile", summary="내 정보 수정")
 async def update_profile(
-    profile_data: UpdateUserBase,  # JSON 데이터로 nickname과 profileUrl 받기
+    profile_data: UpdateUserBase,  
+    file: UploadFile = None, 
     Authorize: AuthJWT = Depends(),
     db: Session = Depends(get_db),
 ):
     email = authenticate_access_token(Authorize=Authorize)
-    result = update_user_profile(db, email, profile_data)
+    
+    # 프로필 사진이 있는 경우 S3에 업로드하고 URL 받기
+    profile_url = None
+    if file:
+        profile_url = await upload_file_to_s3(file, client_s3)
+    
+    # 프로필 업데이트 로직에 URL 전달
+    result = update_user_profile(db, email, profile_data, profile_url)
     
     if not result:
         raise HTTPException(status_code=500, detail="프로필 수정 실패")
