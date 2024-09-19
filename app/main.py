@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from app.user import routes as user_routes
 from fastapi.security import OAuth2PasswordBearer
 from app.bucket import routes as  s3_routes
-
+from app.blog import routes as blog_routes
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     models.SQLModel.metadata.create_all(models.engine)
@@ -18,6 +18,7 @@ app = FastAPI(lifespan=lifespan)
 router = APIRouter(prefix="/api/v1")
 app.include_router(user_routes.router)
 app.include_router(s3_routes.router)
+app.include_router(blog_routes.router)
 
 # CORS 설정
 origins = [
