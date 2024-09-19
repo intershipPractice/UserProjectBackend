@@ -1,18 +1,23 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from app import models
 from contextlib import asynccontextmanager
 from app.user import routes as user_routes
+from fastapi.security import OAuth2PasswordBearer
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     models.SQLModel.metadata.create_all(models.engine)
     yield
 
+# OAuth2PasswordBearer 설정
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/users/token")
+
 app = FastAPI(lifespan=lifespan)
 router = APIRouter(prefix="/api/v1")
 app.include_router(user_routes.router)
 
+# CORS 설정
 origins = [
     "http://localhost",
     "http://localhost:3000",
@@ -26,6 +31,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# 기본 엔드포인트
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
