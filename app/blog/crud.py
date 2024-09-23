@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
-from app.models import Blog  # Blog 모델은 기존에 정의되어 있다고 가정
+from app.models import Blog, User
 from app.blog.schemas import BlogBase
 from datetime import datetime
+from sqlmodel import select
 
 # 블로그 생성
 def create_blog(db: Session, blog_data: BlogBase, user_id: int):
@@ -16,9 +17,19 @@ def create_blog(db: Session, blog_data: BlogBase, user_id: int):
     db.refresh(new_blog)
     return new_blog
 
-# 모든 블로그 조회
+# 모든 블로그 조회 함수
 def get_all_blogs(db: Session):
-    return db.query(Blog).filter(Blog.isDeleted == False).all()  # 삭제되지 않은 블로그만 조회
+    statement = select(Blog, User.nickname).join(User, Blog.userId == User.id).where(Blog.isDeleted == False)
+    results = db.exec(statement).all()
+    
+    # Blog 모델과 닉네임을 조합해서 반환
+    blogs_with_nickname = []
+    for blog, nickname in results:
+        blog_dict = blog.dict()
+        blog_dict['nickname'] = nickname
+        blogs_with_nickname.append(blog_dict)
+    
+    return blogs_with_nickname
 
 # 사용자가 작성한 블로그 조회
 def get_blogs_by_user(db: Session, user_id: int):

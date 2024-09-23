@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
+from typing import List
 from sqlalchemy.orm import Session
 from app.blog.crud import create_blog, get_all_blogs, get_blogs_by_user, update_blog, delete_blog
-from app.blog.schemas import BlogBase
+from app.blog.schemas import BlogBase, BlogResponse
 from app.user.auth import AuthJWT
 from app.models import get_db, User  # 데이터베이스 세션 가져오기
 from fastapi.responses import JSONResponse
@@ -28,7 +29,7 @@ async def create_blog_route(
     return JSONResponse(content={"message": "블로그가 등록되었습니다", "blog": new_blog.title}, status_code=201)
 
 # 전체 블로그 조회
-@router.get("",summary="블로그 전체 조회")
+@router.get("", response_model=List[BlogResponse], summary="블로그 전체 조회")
 async def get_all_blogs_route(
     db: Session = Depends(get_db)
 ):
