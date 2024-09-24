@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, Form, File
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
@@ -77,8 +77,8 @@ async def get_profile(
 
 @router.patch("/profile", summary="내 정보 수정")
 async def update_profile(
-    profile_data: UpdateUserBase,  
-    file: UploadFile = None, 
+    nickname: str = Form(...),  # profile_data의 nickname 필드를 Form으로 받음
+    file: UploadFile = File(...),  # 파일 업로드 필드
     Authorize: AuthJWT = Depends(),
     db: Session = Depends(get_db),
 ):
@@ -87,15 +87,16 @@ async def update_profile(
     # 프로필 사진이 있는 경우 S3에 업로드하고 URL 받기
     profile_url = None
     if file:
-        profile_url = await upload_file_to_s3(file, client_s3)
+        profile_url = await upload_file_to_s3(file)  # 파일을 S3에 업로드
     
-    # 프로필 업데이트 로직에 URL 전달
-    result = update_user_profile(db, email, profile_data, profile_url)
+    # nickname과 profile_url로 사용자 프로필 업데이트
+    result = update_user_profile(db, email, nickname, profile_url)
     
     if not result:
         raise HTTPException(status_code=500, detail="프로필 수정 실패")
 
     return JSONResponse(content={"message": "프로필 수정 완료", "email": email}, status_code=201)
+
 
 @router.get("/email", summary="이메일 중복체크", status_code=200)
 async def check_email(email: str, db: Session = Depends(get_db)):

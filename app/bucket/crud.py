@@ -4,19 +4,19 @@ import logging
 from datetime import datetime
 from app.bucket.s3_client import client_s3  # 분리한 S3 클라이언트 불러오기
 
+
 async def upload_file_to_s3(file: UploadFile) -> str:
     try:
         file_name = f"{datetime.now().isoformat()}-{file.filename}"
         content_type = file.content_type
+        logging.info(f"Uploading file: {file_name}, Content-Type: {content_type}")
 
         # 파일을 S3에 업로드
         client_s3.upload_fileobj(
-            file.file,
-            "profileuserbucket",  # 버킷 이름을 직접 지정
+            file.file,  # 바이너리 파일 데이터를 직접 처리
+            "profileuserbucket",  # 버킷 이름
             file_name,
-            ExtraArgs={
-                "ContentType": content_type
-            }
+            ExtraArgs={"ContentType": content_type}
         )
 
         # S3 파일 URL 생성
