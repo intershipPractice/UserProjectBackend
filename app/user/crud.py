@@ -45,9 +45,20 @@ def authenticate_user(db, email: str, password: str):
         detail="비밀번호나 아이디가 틀렸습니다.",
         headers={"WWW-Authenticate": "Bearer"},
         )
+    if user.isDeleted:
+        raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="탈퇴한 회원입니다.",
+        headers={"WWW-Authenticate": "Bearer"},
+        )
     if not verify_password(password, user.password):
-        return False
+        raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="비밀번호나 아이디가 틀렸습니다.",
+        headers={"WWW-Authenticate": "Bearer"},
+        )
     return user
+
 
 def authenticate_access_token(Authorize: AuthJWT) -> str:
     """
