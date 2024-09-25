@@ -7,12 +7,12 @@ router = APIRouter(
     tags=["S3Bucket"],
 )
 
-@router.get("/test-s3")
-async def test_s3_connection():
-    try:
-        response = client_s3.list_buckets()
-        buckets = [bucket['Name'] for bucket in response['Buckets']]
-        return {"buckets": buckets}
-    except Exception as e:
-        logger.error(f"Failed to connect to S3: {e}")
-        raise HTTPException(status_code=500, detail="Failed to connect to S3")
+# @router.get("/test-s3")
+# async def test_s3_connection():
+#     try:
+#         response = client_s3.list_buckets()
+#         buckets = [bucket['Name'] for bucket in response['Buckets']]
+#         return {"buckets": buckets}
+#     except Exception as e:
+#         logger.error(f"Failed to connect to S3: {e}")
+#         raise HTTPException(status_code=500, detail="Failed to connect to S3")

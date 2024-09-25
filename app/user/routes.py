@@ -78,19 +78,19 @@ async def get_profile(
 @router.patch("/profile", summary="내 정보 수정")
 async def update_profile(
     nickname: str = Form(...),  # profile_data의 nickname 필드를 Form으로 받음
-    file: UploadFile = File(...),  # 파일 업로드 필드
+    # file: UploadFile = File(...),  # 파일 업로드 필드
     Authorize: AuthJWT = Depends(),
     db: Session = Depends(get_db),
 ):
     email = authenticate_access_token(Authorize=Authorize)
     
     # 프로필 사진이 있는 경우 S3에 업로드하고 URL 받기
-    profile_url = None
-    if file:
-        profile_url = await upload_file_to_s3(file)  # 파일을 S3에 업로드
+    # profile_url = None
+    # if file:
+    #     profile_url = await upload_file_to_s3(file)  # 파일을 S3에 업로드
     
     # nickname과 profile_url로 사용자 프로필 업데이트
-    result = update_user_profile(db, email, nickname, profile_url)
+    result = update_user_profile(db, email, nickname)
     
     if not result:
         raise HTTPException(status_code=500, detail="프로필 수정 실패")
